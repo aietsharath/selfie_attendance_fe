@@ -4,13 +4,194 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>selfie_attendance</title>
+<style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 350px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .toggle {
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .toggle a {
+      color: #007bff;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .toggle a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
+  <div class="container">
+  <h2 id="form-title">Sign In</h2>
+
+  <form id="auth-form">
+    <div class="form-group" id="name-group" style="display: none;">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" placeholder="Enter your full name">
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" required placeholder="Enter your email">
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" required placeholder="Enter your password">
+    </div>
+
+    <div class="form-group">
+      <label for="role">Select Role</label>
+      <select id="role" required>
+        <option value="">Select a role</option>
+        <option value="admin">Admin</option>
+        <option value="user">User</option>
+      </select>
+    </div>
+
+    <button type="submit" id="submit-btn">Sign In</button>
+
+    <div class="toggle">
+      <span id="toggle-text">Don't have an account? <a id="toggle-link">Sign Up</a></span>
+    </div>
+  </form>
+</div>
+
+<script>
+  const isSignUp = { value: false }; // toggle state
+
+  const formTitle = document.getElementById('form-title');
+  const toggleLink = document.getElementById('toggle-link');
+  const toggleText = document.getElementById('toggle-text');
+  const nameGroup = document.getElementById('name-group');
+  const submitBtn = document.getElementById('submit-btn');
+  const authForm = document.getElementById('auth-form');
+
+  toggleLink.addEventListener('click', () => {
+    isSignUp.value = !isSignUp.value;
+    if (isSignUp.value) {
+      formTitle.textContent = 'Sign Up';
+      toggleText.innerHTML = 'Already have an account? <a id="toggle-link">Sign In</a>';
+      nameGroup.style.display = 'block';
+      submitBtn.textContent = 'Sign Up';
+    } else {
+      formTitle.textContent = 'Sign In';
+      toggleText.innerHTML = 'Don\'t have an account? <a id="toggle-link">Sign Up</a>';
+      nameGroup.style.display = 'none';
+      submitBtn.textContent = 'Sign In';
+    }
+    // reattach event listener (because innerHTML was replaced)
+    document.getElementById('toggle-link').addEventListener('click', toggleLink.onclick);
+  });
+
+  authForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const role = document.getElementById('role').value;
+
+    if (isSignUp.value && name === '') {
+      alert('Please enter your full name');
+      return;
+    }
+
+    if (!email || !password || !role) {
+      alert('Please fill out all fields');
+      return;
+    }
+
+    if (isSignUp.value) {
+      alert(`✅ Signed up as ${name} (${role})`);
+    } else {
+      alert(`✅ Signed in as ${email} (${role})`);
+    
+    document.getElementById("selfie-section").style.display="block";
+    document.querySelector('.container').style.display='none'
+    }
+    authForm.reset();
+  });
+  </script>
+  <div id="selfie-section" style="display:none; margin-top:20px;">
 <button id="startCamera">Take Selfie</button>
+<div class ="form-group">
+  <label for="class">Select Class</label>
+  <Select id="class" required>
+    <option value="">Select a class</option>
+    <option value="LKG">LKG</option>
+    <option value="1">1st Standard</option>
+    <option value="2">2nd Standard</option>
+    <option value="3">3rd Standard</option>
+    <option value="4">4th Standard</option>
+    <option value="5">5th Standard</option>
+    <option value="6">6th Standard</option>
+    <option value="7">7th Standard</option>
+    <option value="8">8th Standard</option>
+    <option value="9">9th Standard</option>
+    <option value="10">10th Standard</option>
+  </Select>
+</div>
 <video id="video" autoplay playsinline width="320" height="240" style="display:none;"></video>
 <canvas id="canvas" width="320" height="240" style="display: none;"></canvas>
 <img id="selfie" style="display: none;"/>
-
+</div>
 <script>
   const startCameraBtn=document.getElementById("startCamera");
   const video=document.getElementById("video")
@@ -28,12 +209,21 @@
         selfie.src=imageData;
         selfie.style.display='block';
         video.style.display='none'
-        fetch("http://localhost:3000/upload",{
+        
+        const selectedClass = document.getElementById("class").value;
+
+      // Check if class is selected
+      if (!selectedClass) {
+        alert("Please select a class before taking a selfie.");
+        return;
+      }
+
+        fetch("https://selfi-taking-web-app-7.onrender.com/upload",{
           method:"POST",
             headers:{
               "Content-Type":"application/json"
             },
-            body:JSON.stringify({image:imageData})
+            body:JSON.stringify({image:imageData,standard: selectedClass} )
           
             
         }).then(res=>res.text())
